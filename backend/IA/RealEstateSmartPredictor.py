@@ -39,10 +39,6 @@ class RealEstateSmartPredictor:
         else:
             df["Current_Price"] = df.iloc[:, 5]  # Fallback a alguna columna de precio
 
-        # 2. Limpieza de nulos (rellenar con media o 0)
-        numeric_cols = df.select_dtypes(include=[np.number]).columns
-        df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
-
         # 3. Calcular métricas derivadas útiles para el modelo
         # Relación Precio/Ingreso (si no existe, la calculamos)
         if (
