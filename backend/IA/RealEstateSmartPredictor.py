@@ -85,8 +85,6 @@ class RealEstateSmartPredictor:
         print("--- Iniciando Entrenamiento del Modelo ---")
         df_clean = self.prepare_data(df)
 
-        # Generar etiquetas (Target) para entrenar
-        # En un futuro, podrías reemplazar esto con datos reales de "Si subió o no"
         df_clean["Target"] = df_clean.apply(self._generate_training_labels, axis=1)
 
         X = df_clean[self.features]
