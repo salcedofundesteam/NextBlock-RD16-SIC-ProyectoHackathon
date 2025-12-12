@@ -29,9 +29,9 @@ const MapSection: React.FC = () => {
 
   const getColor = (classification: string) => {
      if (!classification) return '#9ca3af';
-     if (classification.includes('Alto Potencial') || classification.includes('Barata')) return '#22c55e'; // Green
+     if (classification.includes('Alto Potencial')) return '#22c55e'; // Green
      if (classification.includes('Estable')) return '#eab308'; // Yellow
-     return '#ef4444'; // Red
+     return '#ef4444'; // Red (Bajo Potencial)
   };
 
   return (
@@ -88,7 +88,7 @@ const MapSection: React.FC = () => {
           <ZoomControl position="bottomright" />
 
           {!loading && zones.map((zone, idx) => {
-             const color = getColor(zone.Clasificacion_IA);
+             const color = getColor(zone.Clasificacion);
              // Ensure unique key fallback
              const key = zone.RegionName || idx;
              const isSelected = selectedZone?.RegionName === zone.RegionName;
@@ -118,7 +118,7 @@ const MapSection: React.FC = () => {
                        <strong className="block text-sm">{zone.City}</strong>
                        <span className="text-xs opacity-80 block mb-1">{zone.RegionName}</span>
                        <span className={`badge badge-xs text-white border-none py-2 px-2 mt-1`} style={{backgroundColor: color}}>
-                          {zone.Clasificacion_IA ? zone.Clasificacion_IA.split(' - ')[0] : 'N/A'}
+                          {zone.Clasificacion || 'N/A'}
                        </span>
                     </div>
                   </Tooltip>

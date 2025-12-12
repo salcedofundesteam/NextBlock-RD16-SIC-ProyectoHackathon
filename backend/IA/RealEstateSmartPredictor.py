@@ -8,124 +8,147 @@ from sklearn.model_selection import train_test_split
 class RealEstateSmartPredictor:
     def __init__(self):
         self.model = RandomForestClassifier(
-            n_estimators=200,  # Número de árboles
-            max_depth=10,  # Profundidad para evitar sobreajuste
+            n_estimators=200,
+            max_depth=10,
+            min_samples_split=5,
             random_state=42,
-            n_jobs=-1,  # Usar todos los procesadores
+            n_jobs=-1,
         )
         self.label_encoder = LabelEncoder()
 
-        # Definimos las columnas que el modelo usará para "pensar"
-        # Usamos los datos más recientes y relevantes
+        # Solo features relevantes para CRECIMIENTO
         self.features = [
             "Growth_2023",
             "Growth_2024",
             "Growth_2025",
-            "Median_Income_2023",
-            "Vacant_Homes_2023",
-            "Population_2023",
-            "Affordability_Ratio_2023",
             "Vacancy_Rate_2023",
-            "Current_Price",
+            "Population_2023",
+            "Growth_Momentum",
+            "Growth_Stability",
         ]
 
     def prepare_data(self, df):
-        """Limpieza y preparación de datos"""
-        df = df.copy()
+        # Precio actual
+        df["Current_Price"] = df.get("2025-01-31", df.iloc[:, 5])
 
-        # 1. Mapear el precio actual (usando la columna más reciente disponible)
-        if "2025-01-31" in df.columns:
-            df["Current_Price"] = df["2025-01-31"]
-        else:
-            df["Current_Price"] = df.iloc[:, 5]  # Fallback a alguna columna de precio
+        # Momentum: ¿El crecimiento está acelerando?
+        df["Growth_Momentum"] = (df["Growth_2024"] + df["Growth_2025"]) / 2 - (
+            df["Growth_2022"] + df["Growth_2023"]
+        ) / 2
 
-        # 3. Calcular métricas derivadas útiles para el modelo
-        # Relación Precio/Ingreso
-        if (
-            "Affordability_Ratio_2023" not in df.columns
-            or df["Affordability_Ratio_2023"].isnull().all()
-        ):
-            df["Affordability_Ratio_2023"] = df["Current_Price"] / (
-                df["Median_Income_2023"] + 1
-            )
+        # Estabilidad: ¿El crecimiento es consistente?
+        df["Growth_Stability"] = 1 - df[
+            ["Growth_2023", "Growth_2024", "Growth_2025"]
+        ].std(axis=1)
 
-        return df
+        return df[
+            ["RegionName", "City", "State", "Current_Price"] + self.features
+        ].copy()
 
-    def _generate_training_labels(self, row):
+    def _classify_potential(self, row):
         """
-        Esta función actúa como el 'Maestro'. Genera las etiquetas de verdad
-        basándose en reglas financieras estrictas para que el modelo aprenda.
+        Clasificacion balanceada basada en CRECIMIENTO:
+
+        ALTO POTENCIAL: Top 15-20% del mercado
+        ESTABLE: Crecimiento moderado/normal (60-70%)
+        BAJO POTENCIAL: Estancado o problemático (15-20%)
         """
-        # Criterios para "Barata - Alto Potencial"
-        # 1. Asequibilidad baja (Ratio < 5 es excelente)
-        # 2. Crecimiento positivo reciente
-        # 3. Vacancia baja (< 8%)
+        # Crecimiento promedio reciente
+        avg_growth = (row["Growth_2024"] + row["Growth_2025"]) / 2
+
+        # ALTO POTENCIAL (criterios más realistas)
         if (
-            row["Affordability_Ratio_2023"] < 5.5
-            and row["Growth_2024"] > 0.02
-            and row["Vacancy_Rate_2023"] < 0.10
+            avg_growth > 0.025  # >2.5% promedio (realista)
+            and row["Growth_2025"] > 0.015  # Creciendo ahora >1.5%
+            and row["Vacancy_Rate_2023"] < 0.12  # Mercado razonable
+            and row["Growth_Momentum"] > -0.01  # No desacelerando fuerte
         ):
-            return "Barata - Alto Potencial"
+            return "Alto Potencial"
 
-        # Criterios para "Cara - Sobrevalorada"
-        # 1. Muy cara para los ingresos locales (Ratio > 7)
-        # 2. O Vacancia muy alta (> 12% indica abandono o especulación)
-        elif row["Affordability_Ratio_2023"] > 7.0 or row["Vacancy_Rate_2023"] > 0.15:
-            return "Cara - Sobrevalorada"
+        # BAJO POTENCIAL (solo casos problemáticos)
+        if (
+            row["Growth_2025"] < -0.005  # Declinando >0.5%
+            or avg_growth < 0.005  # Casi sin crecimiento
+            or row["Vacancy_Rate_2023"] > 0.18  # Vacancia muy alta
+            or (
+                row["Growth_Momentum"] < -0.02 and avg_growth < 0.015
+            )  # Desacelerando mucho
+        ):
+            return "Bajo Potencial"
 
-        else:
-            return "Regular - Estable"
+        return "Estable"
 
     def train(self, df):
-        """Entrena el modelo con tu dataset"""
-        print("--- Iniciando Entrenamiento del Modelo ---")
+        """Entrenamiento optimizado"""
+        print("🔄 Preparando datos...")
         df_clean = self.prepare_data(df)
+        df_clean["Target"] = df_clean.apply(self._classify_potential, axis=1)
 
-        df_clean["Target"] = df_clean.apply(self._generate_training_labels, axis=1)
+        print(f"\n📊 Total propiedades: {len(df_clean)}")
+        print(df_clean["Target"].value_counts().to_string())
 
         X = df_clean[self.features]
         y = self.label_encoder.fit_transform(df_clean["Target"])
 
-        # Split para validar
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42
+            X, y, test_size=0.2, random_state=42, stratify=y
         )
 
         self.model.fit(X_train, y_train)
-
         score = self.model.score(X_test, y_test)
-        print(f"Modelo entrenado con éxito. Precisión estimada: {score*100:.2f}%")
 
-    def predict(self):
-        df = pd.read_csv("texas_master_data.csv")
-        self.train(df)
-        """Retorna el DataFrame con la clasificación y confianza"""
-        df_clean = self.prepare_data(df)
+        print(f"\n✅ Precisión del modelo: {score*100:.1f}%")
+
+        # Top 3 features
+        importance = pd.DataFrame(
+            {"Feature": self.features, "Importancia": self.model.feature_importances_}
+        ).nlargest(3, "Importancia")
+
+        print(f"\n🎯 Top 3 Predictores:")
+        for _, row in importance.iterrows():
+            print(f"   {row['Feature']}: {row['Importancia']:.1%}")
+
+        return df_clean
+
+    def predict(self, csv_path="texas_master_data.csv"):
+        """Predicción optimizada"""
+        df = pd.read_csv(csv_path)
+        df_clean = self.train(df)
+
         X = df_clean[self.features]
+        predictions = self.label_encoder.inverse_transform(self.model.predict(X))
+        confidence = np.max(self.model.predict_proba(X), axis=1)
 
-        # Predicción de clase
-        predictions = self.model.predict(X)
-        decoded_predictions = self.label_encoder.inverse_transform(predictions)
-
-        # Probabilidad (Confianza del modelo)
-        probs = self.model.predict_proba(X)
-        confidence = np.max(probs, axis=1)
-
-        # Crear DataFrame de resultados limpios
-        results = df_clean[
-            ["RegionName", "City", "State", "Current_Price", "Affordability_Ratio_2023"]
-        ].copy()
-        results["Clasificacion_IA"] = decoded_predictions
-        results["Confianza"] = (confidence * 100).round(2)
-
-        # Añadir justificación simple (Datos clave)
-        results["Datos_Clave"] = (
-            "Growth24: "
-            + (df_clean["Growth_2024"] * 100).round(1).astype(str)
-            + "% | "
-            + "Vacancy: "
-            + (df_clean["Vacancy_Rate_2023"] * 100).round(1).astype(str)
-            + "%"
+        # Resultados finales
+        results = pd.DataFrame(
+            {
+                "NombreRegion": df_clean["RegionName"],
+                "Ciudad": df_clean["City"],
+                "Estado": df_clean["State"],
+                "Precio_Actual": df_clean["Current_Price"].round(0).astype(int),
+                "Clasificacion": predictions,
+                "Confianza_%": (confidence * 100).round(1),
+                "Datos_Clave": (
+                    "Crecimiento24: "
+                    + (df_clean["Growth_2024"] * 100).round(1).astype(str)
+                    + "% | "
+                    + "Crecimiento25: "
+                    + (df_clean["Growth_2025"] * 100).round(1).astype(str)
+                    + "% | "
+                    + "Vacancia: "
+                    + (df_clean["Vacancy_Rate_2023"] * 100).round(1).astype(str)
+                    + "% | "
+                    + "Impulso: "
+                    + (df_clean["Growth_Momentum"] * 100).round(1).astype(str)
+                    + "%"
+                ),
+            }
         )
+
+        # Ordenar: Alto Potencial primero, luego por confianza
+        order = {"Alto Potencial": 1, "Estable": 2, "Bajo Potencial": 3}
+        results["_sort"] = results["Clasificacion"].map(order)
+        results = results.sort_values(["_sort", "Confianza_%"], ascending=[True, False])
+        results = results.drop("_sort", axis=1).reset_index(drop=True)
 
         return results

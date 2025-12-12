@@ -4,10 +4,9 @@ export interface IAllData {
   RegionName: string;
   City: string;
   State: string;
-  Current_Price: string;
-  Affordability_Ratio_2023: string;
-  Clasificacion_IA: string;
-  Confianza: string;
+  Precio_Actual: string;
+  Clasificacion: string;
+  "Confianza_%": string;
   Datos_Clave: string;
   Latitude: string;
   Longitude: string;

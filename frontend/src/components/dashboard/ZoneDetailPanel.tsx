@@ -12,9 +12,10 @@ const ZoneDetailPanel: React.FC<ZoneDetailPanelProps> = ({ zone, onClose }) => {
 
   // Helper to determine badge color based on classification
   const getBadgeColor = (classification: string) => {
+    if (!classification) return 'badge-neutral';
     if (classification.includes('Alto Potencial')) return 'badge-success';
     if (classification.includes('Estable')) return 'badge-warning';
-    return 'badge-error';
+    return 'badge-error'; // Bajo Potencial
   };
 
   return (
@@ -31,8 +32,8 @@ const ZoneDetailPanel: React.FC<ZoneDetailPanelProps> = ({ zone, onClose }) => {
       
       <div className="p-4 space-y-4">
         {/* Classification Badge */}
-        <div className={`badge ${getBadgeColor(zone.Clasificacion_IA)} badge-lg w-full font-bold text-white shadow-sm`}>
-          {zone.Clasificacion_IA}
+        <div className={`badge ${getBadgeColor(zone.Clasificacion)} badge-lg w-full font-bold text-white shadow-sm`}>
+          {zone.Clasificacion}
         </div>
 
         {/* Stats Grid */}
@@ -43,7 +44,7 @@ const ZoneDetailPanel: React.FC<ZoneDetailPanelProps> = ({ zone, onClose }) => {
                  <span className="text-xs font-bold uppercase opacity-70">Precio</span>
               </div>
               <p className="font-bold text-sm">
-                ${parseFloat(zone.Current_Price).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                ${parseFloat(zone.Precio_Actual).toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </p>
            </div>
            
@@ -52,17 +53,12 @@ const ZoneDetailPanel: React.FC<ZoneDetailPanelProps> = ({ zone, onClose }) => {
                  <Activity size={16} />
                  <span className="text-xs font-bold uppercase opacity-70">Confianza</span>
               </div>
-              <p className="font-bold text-sm">{zone.Confianza}%</p>
+              <p className="font-bold text-sm">{zone["Confianza_%"]}%</p>
            </div>
         </div>
 
         {/* Detailed Metrics */}
         <div className="space-y-2 pt-2">
-            <div className="flex justify-between items-center text-sm border-b border-base-200 pb-2">
-               <span className="opacity-70">Affordability Ratio</span>
-               <span className="font-mono font-medium">{parseFloat(zone.Affordability_Ratio_2023).toFixed(2)}</span>
-            </div>
-            
             <div className="flex justify-between items-center text-sm border-b border-base-200 pb-2">
                <span className="opacity-70">Lat / Lng</span>
                <span className="font-mono text-xs opacity-50">{zone.Latitude}, {zone.Longitude}</span>

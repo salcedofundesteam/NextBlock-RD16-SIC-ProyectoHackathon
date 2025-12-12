@@ -1,5 +1,4 @@
 from RealEstateSmartPredictor import RealEstateSmartPredictor
-import json
 import pandas as pd
 
 predictor = RealEstateSmartPredictor()
