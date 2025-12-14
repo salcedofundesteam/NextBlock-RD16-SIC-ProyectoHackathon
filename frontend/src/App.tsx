@@ -1,10 +1,13 @@
 import AppRouter from './routes/AppRouter';
 import { AllDataProvider } from './context/AllDataContext';
+import { AgentProvider } from './context/AgentContext';
 
 function App() {
   return (
     <AllDataProvider>
-      <AppRouter />
+      <AgentProvider>
+        <AppRouter />
+      </AgentProvider>
     </AllDataProvider>
   );
 }

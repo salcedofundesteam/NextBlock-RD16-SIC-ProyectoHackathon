@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, LogOut, PieChart, Users, Settings, Menu, X, Loader2 } from 'lucide-react';
+import { LayoutDashboard, LogOut, Bot, Menu, X, Loader2 } from 'lucide-react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import StatsOverview from '../components/dashboard/StatsOverview';
 import MapSection from '../components/dashboard/MapSection';
@@ -68,10 +68,16 @@ const AdminPage: React.FC = () => {
                </button>
             </div>
             <ul className="menu p-4 w-full h-full text-base-content space-y-2">
-               <li><a className="active font-medium"><LayoutDashboard size={20} /> Tablero</a></li>
-               <li><a className="font-medium"><PieChart size={20} /> Análisis</a></li>
-               <li><a className="font-medium"><Users size={20} /> Clientes</a></li>
-               <li><a className="font-medium"><Settings size={20} /> Configuración</a></li>
+               <li>
+                  <a className="active font-medium bg-primary/10 text-primary">
+                     <LayoutDashboard size={20} /> Dashboard
+                  </a>
+               </li>
+               <li>
+                  <a onClick={() => navigate('/agent')} className="font-medium cursor-pointer hover:bg-base-200">
+                     <Bot size={20} /> Agente IA
+                  </a>
+               </li>
             </ul>
             <div className="p-4 border-t border-base-200">
                <button onClick={handleLogout} className="btn btn-outline btn-error w-full gap-2">
