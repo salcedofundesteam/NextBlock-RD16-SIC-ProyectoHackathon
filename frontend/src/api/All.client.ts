@@ -2,12 +2,17 @@ import axiosInstance from './axios.config';
 
 export interface IAllData {
   RegionName: string;
-  City: string;
-  State: string;
+  City?: string;
+  Ciudad?: string;
+  State?: string;
+  Estado?: string;
   Precio_Actual: string;
   Clasificacion: string;
   "Confianza_%": string;
-  Datos_Clave: string;
+  "Crecimiento_2025_%": string;
+  Asequibilidad: string;
+  "Vacancia_%": string;
+  "Impulso_Mercado_%": string;
   Latitude: string;
   Longitude: string;
 }

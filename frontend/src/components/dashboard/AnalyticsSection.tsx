@@ -1,66 +1,139 @@
-import React from 'react';
-import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import React, { useMemo } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { useAllData } from '../../context/AllDataContext';
 
-const dataTrend = [
-  { name: 'Lun', value: 4000 },
-  { name: 'Mar', value: 3000 },
-  { name: 'Mie', value: 2000 },
-  { name: 'Jue', value: 2780 },
-  { name: 'Vie', value: 1890 },
-  { name: 'Sab', value: 2390 },
-  { name: 'Dom', value: 3490 },
-];
-
-const dataZone = [
-  { name: 'A', value: 400 },
-  { name: 'B', value: 300 },
-  { name: 'C', value: 300 },
-  { name: 'D', value: 200 },
-];
+const COLORS = {
+  'Alto Potencial': '#22c55e',
+  'Potencial Moderado': '#f59e0b',
+  'Bajo Potencial': '#ef4444',
+  'Estable': '#3b82f6',
+  'default': '#6b7280'
+};
 
 const AnalyticsSection: React.FC = () => {
+  const { filteredData: data, loading } = useAllData();
+
+  // Distribución por clasificación
+  const classificationData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    const counts: Record<string, number> = {};
+    data.forEach(item => {
+      const classification = item.Clasificacion || 'Sin clasificar';
+      counts[classification] = (counts[classification] || 0) + 1;
+    });
+
+    return Object.entries(counts).map(([name, value]) => ({
+      name,
+      value,
+      color: COLORS[name as keyof typeof COLORS] || COLORS.default
+    }));
+  }, [data]);
+
+  // Distribución de precios por rangos
+  const priceRangeData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    const ranges = {
+      '< $100K': 0,
+      '$100K-200K': 0,
+      '$200K-300K': 0,
+      '$300K-500K': 0,
+      '> $500K': 0
+    };
+
+    data.forEach(item => {
+      const price = parseFloat(item.Precio_Actual || '0');
+      if (price < 100000) ranges['< $100K']++;
+      else if (price < 200000) ranges['$100K-200K']++;
+      else if (price < 300000) ranges['$200K-300K']++;
+      else if (price < 500000) ranges['$300K-500K']++;
+      else ranges['> $500K']++;
+    });
+
+    return Object.entries(ranges).map(([name, value]) => ({ name, value }));
+  }, [data]);
+
+  // No additional calculations needed for analytics section
+
+
+  if (loading) {
+    return (
+      <div className="col-span-1 lg:col-span-4 flex flex-col gap-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="card bg-base-100 shadow-xl border border-base-200 h-[200px] animate-pulse">
+            <div className="card-body p-4">
+              <div className="h-4 bg-base-300 rounded w-32 mb-4"></div>
+              <div className="h-full bg-base-300 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
-      {/* Chart 1: Market Trends */}
-      <div className="card bg-base-100 shadow-xl border border-base-200 h-[280px]">
+    <div className="col-span-1 lg:col-span-4 flex flex-col gap-4">
+      {/* Distribución por Clasificación */}
+      <div className="card bg-base-100 shadow-xl border border-base-200 h-[260px]">
         <div className="card-body p-4">
           <h3 className="card-title text-sm opacity-70">
-            📊 Tendencias del Mercado
+            🎯 Distribución por Clasificación
           </h3>
-          <div className="h-full w-full pt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dataTrend}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
-                />
-                <Area type="monotone" dataKey="value" stroke="#4F46E5" fillOpacity={1} fill="url(#colorValue)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="h-full w-full flex items-center">
+            <div className="w-1/2 h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={classificationData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={30}
+                    outerRadius={55}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {classificationData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number) => [`${value} zonas`, '']}
+                    contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="w-1/2 text-xs space-y-1">
+              {classificationData.map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+                  <span className="truncate">{item.name}</span>
+                  <span className="font-bold ml-auto">{item.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Chart 2: Zone Behavior */}
-      <div className="card bg-base-100 shadow-xl border border-base-200 h-[280px]">
+      {/* Distribución de Precios */}
+      <div className="card bg-base-100 shadow-xl border border-base-200 h-[260px]">
         <div className="card-body p-4">
           <h3 className="card-title text-sm opacity-70">
-             📈 Comportamiento por Zonas
+            💰 Distribución de Precios
           </h3>
-          <div className="h-full w-full pt-4">
+          <div className="h-full w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dataZone}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Bar dataKey="value" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
+              <BarChart data={priceRangeData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
+                <XAxis type="number" fontSize={9} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" fontSize={9} axisLine={false} tickLine={false} width={60} />
+                <Tooltip
+                  formatter={(value: number) => [`${value} propiedades`, '']}
+                  contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
