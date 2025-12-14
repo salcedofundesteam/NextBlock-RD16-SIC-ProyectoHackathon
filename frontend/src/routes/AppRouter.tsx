@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import AdminPage from '../pages/AdminPage';
+import AgentPage from '../pages/AgentPage';
 import ProtectedRoute from './ProtectedRoute';
 
 const AppRouter: React.FC = () => {
@@ -16,6 +17,7 @@ const AppRouter: React.FC = () => {
         {/* Private Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/agent" element={<AgentPage />} />
         </Route>
       </Routes>
     </Router>

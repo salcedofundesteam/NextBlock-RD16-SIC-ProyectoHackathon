@@ -1,21 +1,50 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, LogOut, PieChart, Users, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Bot, Menu, X, Loader2 } from 'lucide-react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import StatsOverview from '../components/dashboard/StatsOverview';
 import MapSection from '../components/dashboard/MapSection';
 import AnalyticsSection from '../components/dashboard/AnalyticsSection';
-import ZoneComparator from '../components/dashboard/ZoneComparator';
-import AIInsights from '../components/dashboard/AIInsights';
+import MetricsTable from '../components/dashboard/MetricsTable';
+import TopZonesTable from '../components/dashboard/TopZonesTable';
+import TopCitiesChart from '../components/dashboard/TopCitiesChart';
+import StateSelector from '../components/dashboard/StateSelector';
+import { useAllData } from '../context/AllDataContext';
 
 const AdminPage: React.FC = () => {
    const navigate = useNavigate();
    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+   const { loading } = useAllData();
 
    const handleLogout = () => {
       localStorage.removeItem('isAuthenticated');
       navigate('/');
    };
+
+   // Loading Screen
+   if (loading) {
+      return (
+         <div className="min-h-screen bg-base-200 flex items-center justify-center">
+            <div className="text-center">
+               <div className="flex flex-col items-center gap-4">
+                  <div className="relative">
+                     <Loader2 size={64} className="animate-spin text-primary" />
+                     <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-primary/20 rounded-full animate-ping"></div>
+                     </div>
+                  </div>
+                  <div>
+                     <h2 className="text-2xl font-bold text-primary mb-2">NextBlock</h2>
+                     <p className="text-base-content/70">Cargando datos del mercado...</p>
+                  </div>
+                  <div className="flex gap-1 mt-2">
+                     <span className="loading loading-dots loading-md text-primary"></span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      );
+   }
 
    return (
       <div className="min-h-screen bg-base-200 flex font-sans text-base-content">
@@ -39,10 +68,16 @@ const AdminPage: React.FC = () => {
                </button>
             </div>
             <ul className="menu p-4 w-full h-full text-base-content space-y-2">
-               <li><a className="active font-medium"><LayoutDashboard size={20} /> Tablero</a></li>
-               <li><a className="font-medium"><PieChart size={20} /> Análisis</a></li>
-               <li><a className="font-medium"><Users size={20} /> Clientes</a></li>
-               <li><a className="font-medium"><Settings size={20} /> Configuración</a></li>
+               <li>
+                  <a className="active font-medium bg-primary/10 text-primary">
+                     <LayoutDashboard size={20} /> Dashboard
+                  </a>
+               </li>
+               <li>
+                  <a onClick={() => navigate('/agent')} className="font-medium cursor-pointer hover:bg-base-200">
+                     <Bot size={20} /> Agente IA
+                  </a>
+               </li>
             </ul>
             <div className="p-4 border-t border-base-200">
                <button onClick={handleLogout} className="btn btn-outline btn-error w-full gap-2">
@@ -72,29 +107,22 @@ const AdminPage: React.FC = () => {
             {/* New Grid System */}
             <DashboardLayout>
 
+               {/* 0. State Selector */}
+               <StateSelector />
+
                {/* 1. Stats Cards (Top) */}
                <StatsOverview />
 
                {/* 2. Map (Left/Center - 8 cols) */}
                <MapSection />
 
-               {/* 3. Small Charts (Right - 4 cols) */}
+               {/* 3. Small Charts (Right - 4 cols) - Positioned alongside map */}
                <AnalyticsSection />
 
-               {/* 4. Zone Comparator (Bottom Left - 8 cols) */}
-               {/* <ZoneComparator /> */}
-
-               {/* <div className="col-span-1 lg:col-span-8 card bg-base-100 shadow-xl border border-base-200">
-                  <div className="card-body justify-center text-center">
-                     <h3 className="font-bold  mb-4 flex items-center gap-2 text-center text-4xl ">
-                        <span>👀</span> Proximante
-                     </h3>
-                  </div>
-               </div> */}
-
-
-               {/* 5. AI Insights (Bottom Right - 4 cols) */}
-               {/* <AIInsights /> */}
+               {/* 4. Metrics Tables (Below Map - 4 cols each in left column area) */}
+               <TopCitiesChart />
+               <MetricsTable />
+               <TopZonesTable />
 
             </DashboardLayout>
          </main>
