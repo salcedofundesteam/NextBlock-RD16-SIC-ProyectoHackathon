@@ -11,7 +11,7 @@ El proyecto consta de dos partes principales:
 
 ---
 
-## 🛠 Stack Tecnológico
+## Stack Tecnológico
 
 | Área             | Tecnologías Clave                                                   |
 | :--------------- | :------------------------------------------------------------------ |
