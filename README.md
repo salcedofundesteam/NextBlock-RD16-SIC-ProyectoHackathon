@@ -1,4 +1,4 @@
-# 🧠 Backend - NextBlock
+# NextBlock
 
 Este directorio contiene el backend del proyecto **NextBlock**, una aplicación inteligente para el análisis y predicción de inversiones inmobiliarias.
 
