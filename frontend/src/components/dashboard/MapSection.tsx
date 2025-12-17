@@ -87,7 +87,15 @@ interface MapCenterProps {
 
 const DynamicMapCenter: React.FC<MapCenterProps> = ({ selectedState, zones }) => {
   const map = useMap();
-
+useEffect(() => {
+  console.log(`Estado seleccionado: ${selectedState}`);
+  console.log(`Cantidad de zonas: ${zones.length}`);
+  if (zones.length > 0) {
+    console.log('Ejemplo de zona:', zones[0]);
+    console.log('Latitud (raw):', zones[0].Latitude, typeof zones[0].Latitude);
+    console.log('Longitud (raw):', zones[0].Longitude, typeof zones[0].Longitude);
+  }
+}, [selectedState, zones]);
   useEffect(() => {
     const center = STATE_CENTERS[selectedState] || STATE_CENTERS['all'];
 

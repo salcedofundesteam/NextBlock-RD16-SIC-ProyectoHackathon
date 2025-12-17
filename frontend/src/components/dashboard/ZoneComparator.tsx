@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
 const mockZoneData: Record<string, { roi: string; price: string; growth: string; score: number }> = {
-  'A': { roi: '12%', price: '2,400 €/m²', growth: '+5%', score: 8.5 },
-  'B': { roi: '8.5%', price: '1,900 €/m²', growth: '+2%', score: 7.2 },
-  'C': { roi: '15%', price: '3,100 €/m²', growth: '+8%', score: 9.1 },
+  'A': { roi: '12%', price: '2,400 usd/m²', growth: '+5%', score: 8.5 },
+  'B': { roi: '8.5%', price: '1,900 usd/m²', growth: '+2%', score: 7.2 },
+  'C': { roi: '15%', price: '3,100 usd/m²', growth: '+8%', score: 9.1 },
 };
 
 const ZoneComparator: React.FC = () => {

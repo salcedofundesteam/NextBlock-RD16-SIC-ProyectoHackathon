@@ -4,10 +4,7 @@ from Services.preparing_final_data import getData
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",    # Típico frontend de React/vite
-    # "https://mi-dominio.com",   # Tu dominio en producción
-]
+origins = ["http://localhost:5173"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,6 +13,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # root
 @app.get("/")
@@ -30,6 +28,8 @@ def get_all():
         data = getData()
         return data
     except Exception as e:
-        print(f"❌ Error en /api/all: {e}")
+        print(f"Error en /api/all: {e}")
         print(f"Tipo de error: {type(e).__name__}")
-        raise HTTPException(status_code=500, detail=f"Error al obtener los datos: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error al obtener los datos: {str(e)}"
+        )

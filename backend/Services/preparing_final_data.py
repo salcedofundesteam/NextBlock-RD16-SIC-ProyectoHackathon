@@ -2,7 +2,6 @@ import csv
 import json
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent
 
 CSV_INPUT_PATH = BASE_DIR / ".." / "IA" / "resultados_prediccion_con_geo.csv"

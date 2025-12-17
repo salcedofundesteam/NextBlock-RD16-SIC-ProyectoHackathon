@@ -56,7 +56,6 @@ const AnalyticsSection: React.FC = () => {
 
   // No additional calculations needed for analytics section
 
-
   if (loading) {
     return (
       <div className="col-span-1 lg:col-span-4 flex flex-col gap-4">
@@ -77,8 +76,8 @@ const AnalyticsSection: React.FC = () => {
       {/* Distribución por Clasificación */}
       <div className="card bg-base-100 shadow-xl border border-base-200 h-[260px]">
         <div className="card-body p-4">
-          <h3 className="card-title text-sm opacity-70">
-            🎯 Distribución por Clasificación
+          <h3 className="card-title text-lg opacity-70 justify-center">
+            <b>Distribución por Clasificación</b>
           </h3>
           <div className="h-full w-full flex items-center">
             <div className="w-1/2 h-full">
@@ -116,12 +115,12 @@ const AnalyticsSection: React.FC = () => {
           </div>
         </div>
       </div>
-
+      
       {/* Distribución de Precios */}
       <div className="card bg-base-100 shadow-xl border border-base-200 h-[260px]">
         <div className="card-body p-4">
-          <h3 className="card-title text-sm opacity-70">
-            💰 Distribución de Precios
+          <h3 className="card-title text-lg opacity-70 justify-center">
+              <b>Distribución de Precios</b>
           </h3>
           <div className="h-full w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">

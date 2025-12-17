@@ -94,8 +94,8 @@ const AdminPage: React.FC = () => {
                      <Menu size={24} />
                   </button>
                   <div>
-                     <h2 className="text-2xl lg:text-3xl font-bold">Panel de Administración</h2>
-                     <p className="text-sm lg:text-base text-base-content/70">Bienvenido de nuevo, Administrador.</p>
+                     <h2 className="text-2xl lg:text-3xl font-bold">Estados Unidos</h2>
+                     <p className="text-sm lg:text-base text-base-content/70">Encuentra la zona ideal para tus inversiones.</p>
                   </div>
                </div>
 

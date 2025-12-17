@@ -14,8 +14,8 @@ const TopZonesTable: React.FC = () => {
     return (
         <div className="col-span-1 lg:col-span-4 card bg-base-100 shadow-xl border border-base-200 h-full">
             <div className="card-body p-4">
-                <h3 className="card-title text-sm opacity-70">
-                    🏆 Top 5 Zonas por Confianza
+                <h3 className="card-title text-lg opacity-70 justify-center">
+                    <b>Top 5 Zonas por Confianza</b>
                 </h3>
                 <div className="overflow-x-auto">
                     <table className="table table-xs">
@@ -49,5 +49,4 @@ const TopZonesTable: React.FC = () => {
         </div>
     );
 };
-
 export default TopZonesTable;

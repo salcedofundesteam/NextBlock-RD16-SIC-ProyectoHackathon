@@ -7,57 +7,49 @@ from sklearn.model_selection import train_test_split
 
 class RealEstateSmartPredictor:
     def __init__(self):
-        # Mantenemos el Random Forest, pero ahora aprenderá patrones más complejos
+        # Random Forest
         self.model = RandomForestClassifier(
-            n_estimators=300,  # Aumentado para más precisión
+            n_estimators=300,
             max_depth=12,
             min_samples_split=4,
             random_state=42,
             n_jobs=-1,
-            class_weight="balanced",  # Importante para detectar las "joyas" escasas
+            class_weight="balanced",
         )
         self.label_encoder = LabelEncoder()
 
-        # Features ampliados y mejorados basados en tu dataset completo
         self.features = [
             "Growth_2024",
             "Growth_2025",
-            "Growth_Trend_3Y",  # Tendencia a 3 años
+            "Growth_Trend_3Y",
             "Vacancy_Rate_2023",
-            "Affordability_Ratio_2023",  # ¡CRUCIAL! (Precio vs Ingreso)
-            "Growth_Momentum",  # Aceleración
-            "Market_Stability",  # Volatilidad inversa
+            "Affordability_Ratio_2023",
+            "Growth_Momentum",
+            "Market_Stability",
         ]
 
     def prepare_data(self, df):
-        """
-        Prepara los datos y genera métricas financieras avanzadas.
-        """
-        # Evitar modificar el original
         data = df.copy()
 
-        # 1. Precio Actual (Usamos la columna más reciente disponible)
+        # Precio Actual
         data["Current_Price"] = data["2025-01-31"]
 
-        # 2. Momentum (Aceleración del crecimiento)
-        # Compara (2024+2025) vs (2022+2023)
+        # Momentum (Aceleración del crecimiento)
         recent_growth = (data["Growth_2024"] + data["Growth_2025"]) / 2
         past_growth = (data["Growth_2022"] + data["Growth_2023"]) / 2
         data["Growth_Momentum"] = recent_growth - past_growth
 
-        # 3. Tendencia a Largo Plazo (3 Años)
+        # Tendencia a Largo Plazo (3 Años)
         data["Growth_Trend_3Y"] = data[
             ["Growth_2023", "Growth_2024", "Growth_2025"]
         ].mean(axis=1)
 
-        # 4. Estabilidad del Mercado (Inverso de la desviación estándar)
-        # Mercados con crecimiento constante son mejores que los volátiles
+        # Estabilidad del Mercado
         volatility = data[
             ["Growth_2021", "Growth_2022", "Growth_2023", "Growth_2024"]
         ].std(axis=1)
-        data["Market_Stability"] = 1 / (volatility + 0.001)  # Evitar división por cero
+        data["Market_Stability"] = 1 / (volatility + 0.001)
 
-        # Limpieza básica de NaNs en las features que usaremos
         for col in self.features:
             if col in data.columns:
                 data[col] = data[col].fillna(data[col].median())
@@ -65,24 +57,15 @@ class RealEstateSmartPredictor:
         return data
 
     def _generate_smart_target(self, df):
-        """
-        GENERA LA CLASIFICACIÓN PERFECTA BASADA EN ESTADÍSTICA (PERCENTILES),
-        NO EN NÚMEROS FIJOS.
-        """
-        # Calcular un 'Investment Score' (0 a 100)
-        # Pesos: Crecimiento (40%), Momentum (20%), Asequibilidad (20%), Vacancia (20%)
-
-        # Normalización simple para poder sumar peras con manzanas
+        # Calcular Investment Score (0 a 100)
         def normalize(series):
             return (series - series.min()) / (series.max() - series.min())
 
-        # Invertir vacancia y asequibilidad (menor es mejor)
         inv_vacancy = 1 - normalize(df["Vacancy_Rate_2023"])
         inv_affordability = 1 - normalize(df["Affordability_Ratio_2023"])
         score_growth = normalize(df["Growth_2025"])
         score_momentum = normalize(df["Growth_Momentum"])
 
-        # Fórmula Maestra de Calidad
         final_score = (
             (score_growth * 0.40)
             + (score_momentum * 0.20)
@@ -90,10 +73,8 @@ class RealEstateSmartPredictor:
             + (inv_vacancy * 0.20)
         )
 
-        # Usamos PERCENTILES para definir las clases.
-        # Esto asegura que siempre detectemos el Top 20% del mercado, esté como esté la economía.
-        p80 = final_score.quantile(0.80)  # Top 20%
-        p30 = final_score.quantile(0.30)  # Bottom 30%
+        p80 = final_score.quantile(0.80)
+        p30 = final_score.quantile(0.30)
 
         def classify(score):
             if score >= p80:
@@ -105,15 +86,13 @@ class RealEstateSmartPredictor:
         return final_score.apply(classify)
 
     def train(self, df):
-        """Entrenamiento optimizado con lógica de percentiles"""
-        print("🔄 Preparando datos y generando ranking estadístico...")
+        print("Preparando datos y generando ranking estadístico...")
 
         df_clean = self.prepare_data(df)
 
-        # AQUÍ ESTÁ LA MAGIA: Generamos el Target dinámicamente basado en la calidad relativa
         df_clean["Target"] = self._generate_smart_target(df_clean)
 
-        print(f"\n📊 Distribución de Clases (Basada en Percentiles del Mercado):")
+        print(f"\nDistribución de Clases (Basada en Percentiles del Mercado):")
         print(
             df_clean["Target"]
             .value_counts(normalize=True)
@@ -133,11 +112,8 @@ class RealEstateSmartPredictor:
         self.model.fit(X_train, y_train)
         score = self.model.score(X_test, y_test)
 
-        print(
-            f"\n✅ Modelo ajustado a la lógica de mercado. Precisión: {score*100:.1f}%"
-        )
+        print(f"\nModelo ajustado a la lógica de mercado. Precisión: {score*100:.1f}%")
 
-        # Feature Importance para que veas qué está moviendo el mercado
         importance = pd.DataFrame(
             {"Feature": self.features, "Importancia": self.model.feature_importances_}
         ).sort_values("Importancia", ascending=False)
@@ -148,12 +124,8 @@ class RealEstateSmartPredictor:
         return df_clean
 
     def predict(self, csv_path="texas_master_data.csv"):
-        """Predicción y generación de formato idéntico al solicitado"""
         df = pd.read_csv(csv_path)
 
-        # Entrenamos con los mismos datos (o podrías cargar un modelo guardado)
-        # Nota: En producción, idealmente separarías train de predict,
-        # pero aquí seguimos tu flujo para mantener la estructura.
         df_processed = self.train(df)
 
         X = df_processed[self.features]
@@ -163,7 +135,7 @@ class RealEstateSmartPredictor:
         probabilities = self.model.predict_proba(X)
         confidence = np.max(probabilities, axis=1)
 
-        # Construcción del DataFrame de Resultados (Formato IDÉNTICO al original)
+        # Construcción del DataFrame de Resultados
         results = pd.DataFrame(
             {
                 "RegionName": df_processed["RegionName"],
@@ -179,8 +151,6 @@ class RealEstateSmartPredictor:
             }
         )
 
-        # Lógica de Ordenamiento: Alto Potencial arriba, luego por confianza
-        # Usamos un mapa personalizado para forzar el orden específico
         sort_map = {"Alto Potencial": 0, "Estable": 1, "Bajo Potencial": 2}
         results["_sort_helper"] = results["Clasificacion"].map(sort_map)
 
@@ -188,7 +158,6 @@ class RealEstateSmartPredictor:
             ["_sort_helper", "Confianza_%"], ascending=[True, False]
         )
 
-        # Limpieza final
         results = results.drop("_sort_helper", axis=1).reset_index(drop=True)
 
         return results

@@ -24,8 +24,8 @@ const TopCitiesChart: React.FC = () => {
     return (
         <div className="col-span-1 lg:col-span-4 card bg-base-100 shadow-xl border border-base-200 h-[260px]">
             <div className="card-body p-4">
-                <h3 className="card-title text-sm opacity-70">
-                    🏙️ Top Ciudades por Zonas
+                <h3 className="card-title text-lg opacity-70 justify-center">
+                    <b>Top Ciudades por Zonas</b>
                 </h3>
                 <div className="h-full w-full pt-2">
                     <ResponsiveContainer width="100%" height="100%">

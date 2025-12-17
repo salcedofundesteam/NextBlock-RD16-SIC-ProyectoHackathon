@@ -2,15 +2,16 @@ import pandas as pd
 import pgeocode
 import os
 
+
 def agregar_lat_long():
-    # Ruta absoluta de este archivo
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Construir rutas relativas
     input_csv_path = os.path.join(base_dir, "..", "IA", "resultados_prediccion.csv")
-    output_csv_path = os.path.join(base_dir, "..", "IA", "resultados_prediccion_con_geo.csv")
+    output_csv_path = os.path.join(
+        base_dir, "..", "IA", "resultados_prediccion_con_geo.csv"
+    )
 
-    # Normalizar rutas (Windows-friendly)
     input_csv_path = os.path.normpath(input_csv_path)
     output_csv_path = os.path.normpath(output_csv_path)
 
@@ -22,7 +23,7 @@ def agregar_lat_long():
     # Inicializar buscador ZIP USA
     nomi = pgeocode.Nominatim("us")
 
-    # Funciones para obtener latitud y longitud desde ZIP
+    # Funciones para obtener latitud y longitud
     def obtener_lat(zip_code):
         info = nomi.query_postal_code(str(zip_code))
         return info.latitude if info is not None else None
@@ -31,11 +32,9 @@ def agregar_lat_long():
         info = nomi.query_postal_code(str(zip_code))
         return info.longitude if info is not None else None
 
-    # Crear columnas nuevas
     df["Latitude"] = df["RegionName"].apply(obtener_lat)
     df["Longitude"] = df["RegionName"].apply(obtener_lon)
 
-    # Guardar resultado
     df.to_csv(output_csv_path, index=False)
 
     print(f"Archivo generado correctamente en:\n{output_csv_path}")

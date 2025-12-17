@@ -11,7 +11,7 @@ const AIInsights: React.FC = () => {
          <p className="text-xs text-base-content/60 mb-4">
             Generado hace 5 min • Modelo v4.2
          </p>
-
+         
          <div className="space-y-4">
             <div className="p-3 bg-base-100 rounded-lg border border-base-200 shadow-sm">
                 <div className="flex items-start gap-3">
