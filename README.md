@@ -1,6 +1,6 @@
 # NextBlock
 
-**NextBlock** es una plataforma inteligente para el análisis, predicción y recomendación de inversiones inmobiliarias. Utiliza modelos de Machine Learning para clasificar propiedades y visualizarlas en un dashboard interactivo.
+**NextBlock** es una plataforma inteligente para el análisis, predicción y recomendación de inversiones inmobiliarias. Utiliza modelos de Machine Learning para clasificar propiedades y visualizarlas en un dashboard interactivo junto a un chatbot integrado.
 
 ## Visión General
 
