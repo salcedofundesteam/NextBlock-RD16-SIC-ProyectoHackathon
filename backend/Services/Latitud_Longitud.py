@@ -16,29 +16,33 @@ def agregar_lat_long():
     output_csv_path = os.path.normpath(output_csv_path)
 
     print("Leyendo archivo:", input_csv_path)
-
-    # Leer CSV original
     df = pd.read_csv(input_csv_path)
 
-    # Inicializar buscador ZIP USA
+    # Asegurar ZIP como string de 5 dígitos (ej: 06010)
+    df["RegionName"] = (
+        df["RegionName"]
+        .astype(str)
+        .str.strip()
+        .str.replace(r"\.0$", "", regex=True)
+        .str.zfill(5)
+    )
+
     nomi = pgeocode.Nominatim("us")
 
-    # Funciones para obtener latitud y longitud
-    def obtener_lat(zip_code):
-        info = nomi.query_postal_code(str(zip_code))
-        return info.latitude if info is not None else None
+    # Calcular solo para ZIPs únicos
+    zips_unicos = df["RegionName"].dropna().unique()
+    print("ZIPs únicos:", len(zips_unicos))
 
-    def obtener_lon(zip_code):
-        info = nomi.query_postal_code(str(zip_code))
-        return info.longitude if info is not None else None
+    geo = nomi.query_postal_code(pd.Series(zips_unicos))
+    # geo es un DataFrame con columnas latitude/longitude
+    geo = geo[["postal_code", "latitude", "longitude"]].set_index("postal_code")
 
-    df["Latitude"] = df["RegionName"].apply(obtener_lat)
-    df["Longitude"] = df["RegionName"].apply(obtener_lon)
+    # Mapear de vuelta al DF
+    df["Latitude"] = df["RegionName"].map(geo["latitude"])
+    df["Longitude"] = df["RegionName"].map(geo["longitude"])
 
     df.to_csv(output_csv_path, index=False)
-
     print(f"Archivo generado correctamente en:\n{output_csv_path}")
 
 
-if __name__ == "__main__":
-    agregar_lat_long()
+agregar_lat_long()
